@@ -15,8 +15,8 @@ import scrapy
 # scrapy crawl us_name -o us_name.jl
 class UsNameSpider(scrapy.Spider):
     name = 'us_name'
-    allowed_domains = ['https://stackoverflow.com/tags']
-    start_urls = ['http://https://stackoverflow.com/tags/']
+    allowed_domains = ['stackoverflow.com']
+    start_urls = ['https://stackoverflow.com/tags/']
 
     def parse(self, response):
         tags = response.xpath('//div[@class="tags_list"]/table[@id="tags-browser"]/tr/td[@class="tag-cell"]')
