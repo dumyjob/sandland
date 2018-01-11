@@ -13,17 +13,20 @@ import scrapy
 # Twitter:
 # Youtube:
 # scrapy crawl us_name -o us_name.jl
+# 持久化:
+# todo q: 出现response.status = 429 too many Request: 采用IP池/代理; sleep一会
 class UsNameSpider(scrapy.Spider):
     name = 'us_name'
     allowed_domains = ['stackoverflow.com']
     start_urls = ['https://stackoverflow.com/tags/']
 
     def parse(self, response):
-        tags = response.xpath('//div[@class="tags_list"]/table[@id="tags-browser"]/tr/td[@class="tag-cell"]')
-
+        tags = response.xpath('//div[@id="tags_list"]/table[@id="tags-browser"]/tr/td[@class="tag-cell"]')
+        # response.xpath('//div[@id="tags_list"]')
+        # /table[@id="tags-browser"]/tr/td[@class="tag-cell"
         # tag_list
         for tag in tags:
-            tag_href = tag.xpath('a/@href')
+            tag_href = tag.xpath('a/@href').extract_first()
             if tag_href is not None:
                 yield response.follow(tag_href, self.parse_tag)
 
@@ -38,7 +41,7 @@ class UsNameSpider(scrapy.Spider):
 
         # questions
         for question in questions:
-            q_href = question.xpath('div[@class="summary"]/h3/a/@href')
+            q_href = question.xpath('div[@class="summary"]/h3/a/@href').extract_first()
             if q_href is not None:
                 yield response.follow(q_href, self.parse_question)
 
