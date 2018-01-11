@@ -24,7 +24,7 @@ class UnionLottoSpider(scrapy.Spider):
                 }
 
                 link_detail = row.xpath('td[7]/a/@href').extract_first()
-                yield response.follow(link_detail, self.parse_detail, dont_filter=True)
+                yield response.follow(link_detail, callback=self.parse_detail, dont_filter=True)
 
         # 分页搜索
         next_or_pre_pages = response.xpath('//div[@class="pagebar"]/table/tr/td/a/span[@class="fc_ch1"]/../@href')

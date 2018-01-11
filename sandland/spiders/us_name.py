@@ -20,50 +20,61 @@ class UsNameSpider(scrapy.Spider):
     allowed_domains = ['stackoverflow.com']
     start_urls = ['https://stackoverflow.com/tags/']
 
+    custom_settings = {
+        'DOWNLOAD_DELAY': 3
+    }
+
     def parse(self, response):
         tags = response.xpath('//div[@id="tags_list"]/table[@id="tags-browser"]/tr/td[@class="tag-cell"]')
         # response.xpath('//div[@id="tags_list"]')
         # /table[@id="tags-browser"]/tr/td[@class="tag-cell"
         # tag_list
-        for tag in tags:
-            tag_href = tag.xpath('a/@href').extract_first()
+        self.log('总共: %s tag' % len(tags))
+        for tag_href in tags.xpath('a/@href').extract():
             if tag_href is not None:
-                yield response.follow(tag_href, self.parse_tag)
+                yield response.follow(tag_href, callback=self.parse_tag)
 
         # next tag page: tag_list
         next_page = response.xpath('//div[@class="pager fr"]/a[@rel="next"]/@href').extract_first()
         if next_page is not None and next_page.strip() != '':
-            yield response.follow(next_page, self.parse)
+            self.log('下一页 tag')
+            yield response.follow(next_page, callback=self.parse)
 
     # 每个tag下的questions列表
     def parse_tag(self, response):
-        questions = response.xpath('//div[@class="questions"]/div[@class="question-summary"]')
+        questions = response.xpath('//div[@id="questions"]/div[@class="question-summary"]')
 
         # questions
-        for question in questions:
-            q_href = question.xpath('div[@class="summary"]/h3/a/@href').extract_first()
+        self.log('总共: %s question' % len(questions))
+        for q_href in questions.xpath('div[@class="summary"]/h3/a/@href').extract():
             if q_href is not None:
-                yield response.follow(q_href, self.parse_question)
+                req = response.follow(q_href, callback=self.parse_question, dont_filter=True)
+                self.log('question req url:%s ' % req.url)
+                yield req
 
         # tag next page's question
         next_page = response.xpath('//div[@class="pager fl"]/a[@rel="next"]/@href').extract_first()
         if next_page is not None:
-            yield response.follow(next_page, self.parse_tag)
+            self.log('下一页 question')
+            yield response.follow(next_page, callback=self.parse_tag)
 
     # 某个question
     def parse_question(self, response):
+        self.log('question url: %s' % response.url)
         # todo 很长的评论怎么处理的,暂时先按短评论处理
-        post_user_names = response.xpath('//div[@class="user-info"]/div[@class="user-details"]/a/text()').extract()
+        post_user_names = response.xpath('//div[@class="user-info "]/div[@class="user-details"]/a/text()').extract()
         comment_user_names = response.xpath('//a[@class="comment-user"]/text()').extract()
 
-        for post_user_name in post_user_names:
-            yield {
-                'name': post_user_name,
-                'src': 'StackOverflow'
-            }
+        if post_user_names:
+            for post_user_name in post_user_names:
+                yield {
+                    'name': post_user_name,
+                    'src': 'StackOverflow'
+                }
 
-        for comment_user_name in comment_user_names:
-            yield {
-                'name': comment_user_name,
-                'src': 'StackOverflow'
-            }
+        if comment_user_names:
+            for comment_user_name in comment_user_names:
+                yield {
+                    'name': comment_user_name,
+                    'src': 'StackOverflow'
+                }
