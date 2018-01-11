@@ -7,6 +7,7 @@
 
 from scrapy import signals
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
+from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
 import random
 
 
@@ -122,4 +123,20 @@ class RotateUserAgentMiddleware(UserAgentMiddleware):
 
     def process_request(self, request, spider):
         request.headers.setdefault(b'User-Agent', random.choice(self.user_agents))
+
+
+class IpProxyMiddleware(HttpProxyMiddleware):
+
+    def __init__(self, ip_pools):
+        self.ip_pools = ip_pools
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler.settings.getlist('IP_POOLS'))
+
+    def process_request(self, request, spider):
+        ip = random.choice(self.ip_pools)['ip_proxy']
+        print('proxy ip: %s' % ip)
+        request.meta[b'proxy'] = 'https://%s' % ip
+
 

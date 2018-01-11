@@ -57,8 +57,10 @@ COOKIES_ENABLED = False
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     #禁用默认的User-Agent middleware
-   'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware':None,
-   'sandland.middlewares.RotateUserAgentMiddleware': 543
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'sandland.middlewares.RotateUserAgentMiddleware': 543,
+    'scrapy.downloadermiddlewares.useragent.HttpProxyMiddleware': None,
+    'sandland.middlewares.IpProxyMiddleware': 125
    # 'sandland.middlewares.SandlandDownloaderMiddleware': 543,
 }
 
@@ -165,4 +167,11 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11",
 
     "Mozilla/5.0 (X11; U; Linux x86_64; zh-CN; rv:1.9.2.10) Gecko/20100922 Ubuntu/10.10 (maverick) Firefox/3.6.10"
+]
+
+# IP池
+IP_POOLS = [
+    {'ip_proxy': '110.73.33.207:6673'},
+    {'ip_proxy': '122.89.138.20:6675'},
+    {'ip_proxy': '110.72.20.245:6673'}
 ]
