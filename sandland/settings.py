@@ -171,7 +171,13 @@ USER_AGENTS = [
 
 # IP池
 IP_POOLS = [
-    {'ip_proxy': '110.73.33.207:6673'},
-    {'ip_proxy': '122.89.138.20:6675'},
-    {'ip_proxy': '110.72.20.245:6673'}
+    {'ip_proxy': '122.114.31.177:808', 'protocol': 'HTTP'},
+    {'ip_proxy': '61.135.217.7:80', 'protocol': 'HTTP'},
+    {'ip_proxy': '219.138.58.150:3128', 'protocol': 'HTTPS'},
+    {'ip_proxy': '182.88.255.110:8123', 'protocol': 'HTTPS'},
+    {'ip_proxy': '115.200.61.68:80', 'protocol': 'HTTP'},
+    {'ip_proxy': '220.162.155.89:32376', 'protocol': 'HTTPS'},
+    {'ip_proxy': '49.85.14.209:45878', 'protocol': 'HTTPS'},
+    {'ip_proxy': '183.52.150.214:61234', 'protocol': 'HTTPS'},
+    {'ip_proxy': '218.72.72.204:38561', 'protocol': 'HTTPS'}
 ]

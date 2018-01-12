@@ -135,8 +135,10 @@ class IpProxyMiddleware(HttpProxyMiddleware):
         return cls(crawler.settings.getlist('IP_POOLS'))
 
     def process_request(self, request, spider):
-        ip = random.choice(self.ip_pools)['ip_proxy']
-        print('proxy ip: %s' % ip)
-        request.meta[b'proxy'] = 'https://%s' % ip
+        proxy = random.choice(self.ip_pools)
+        ip = proxy['ip_proxy']
+        protocol = proxy['protocol']
+
+        request.meta[b'proxy'] = '%s://%s' % (protocol, ip)
 
 
