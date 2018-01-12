@@ -59,7 +59,7 @@ DOWNLOADER_MIDDLEWARES = {
     #禁用默认的User-Agent middleware
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'sandland.middlewares.RotateUserAgentMiddleware': 543,
-    'scrapy.downloadermiddlewares.useragent.HttpProxyMiddleware': None,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
     'sandland.middlewares.IpProxyMiddleware': 125
    # 'sandland.middlewares.SandlandDownloaderMiddleware': 543,
 }

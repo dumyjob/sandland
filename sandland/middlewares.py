@@ -9,6 +9,7 @@ from scrapy import signals
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
 import random
+import logging
 
 
 class SandlandSpiderMiddleware(object):
@@ -138,7 +139,12 @@ class IpProxyMiddleware(HttpProxyMiddleware):
         proxy = random.choice(self.ip_pools)
         ip = proxy['ip_proxy']
         protocol = proxy['protocol']
+        request.meta[b"proxy"] = '%s://%s' % (protocol.lower(), ip)
 
-        request.meta[b'proxy'] = '%s://%s' % (protocol, ip)
+        print(request.meta[b'proxy'])
+
+
+# How to deal TCP connection timed out/ Connection was refused by other side
+
 
 
