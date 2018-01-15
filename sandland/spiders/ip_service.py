@@ -6,6 +6,8 @@ from ..redis_p import *
 
 # 验证IP_POOL中的IP代理的有效性
 # scrapy crawl ip_service
+# consumer: 从redis中获取代理ip,验证可用性,加入到可用列表中
+# todo: + 定时验证ip_pool中的代理的可用性的定时任务
 class IpServiceSpider(scrapy.Spider):
     name = 'ip_service'
     allowed_domains = ['www.baidu.com']
@@ -24,7 +26,6 @@ class IpServiceSpider(scrapy.Spider):
     def start_requests(self):
         url = 'https://www.baidu.com/'
 
-        # todo:实现定时任务
         ip_pool = r.smembers(proxy_ip_key)
         for ip_proxy in ip_pool:
             proxy = ip_proxy['proxy']
@@ -43,7 +44,14 @@ class IpServiceSpider(scrapy.Spider):
         src_request = response.request
         proxy = src_request.meta['proxy']
         if response.status == 200:
+            # storage useful proxy
             self.log('proxy: %s is useful' % proxy)
+            pip = r.pipeline()
+            pip.sadd(ip_pool_key, proxy)
+            pip.srem(proxy_ip_key, proxy)
+
+            pip.execute()
+
         else:
             self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
             r.srem(proxy_ip_key, proxy)

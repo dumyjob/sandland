@@ -5,6 +5,10 @@ import scrapy
 # 用来获取IP代理地址
 # scrapy crawl proxy_ip -o proxy_ip.jl -L WARNNINGS
 # 这里获取IP代理地址也会出现503错误,每个ip的请求次数超出限制
+# producer: 将获取的代理Ip添加到redis中
+# ?: 为什么要使用producer-consumer模式?
+# A: 因为producer一次会拉取大量的代理Ip,而consumer一次只能验证一个代理IP的可用性
+# consumer的性能没有发挥出来
 class ProxyIpSpider(scrapy.Spider):
     name = 'proxy_ip'
     allowed_domains = ['www.xicidaili.com']
@@ -43,29 +47,10 @@ class ProxyIpSpider(scrapy.Spider):
                     ip = ip[0]
                     port = port[0]
                     proxy = '%s://%s:%s' % (protocol.lower(), ip, port)
-                    self.log('proxy: %s' % proxy)
-                    # todo: 这里request应该不需要遵循反爬规则,频率太低验证不过来
-                    yield scrapy.Request(self.url, callback=self.parse_success, errback=self.parse_err,
-                                         meta={'proxy': proxy, 'handle_httpstatus_all ': True},
-                                         dont_filter=True)
 
+                    yield {
+                        'proxy': proxy
+                    }
         next_page = response.xpath('//div[@class="pagination"]/a[@class="next_page"]/@href').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
-
-    # 代理IP验证失败,记Log
-    def parse_err(self, failure):
-        proxy = failure.request.meta['proxy']
-        self.log('proxy: %s is invalid' % proxy)
-
-    # 代理IP验证成功
-    def parse_success(self, response):
-        src_request = response.request
-        proxy = src_request.meta['proxy']
-        if response.status == 200:
-            self.log('proxy: %s is useful' % proxy)
-            yield {
-                'proxy': proxy
-            }
-        else:
-            self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
