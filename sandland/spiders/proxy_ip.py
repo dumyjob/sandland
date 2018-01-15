@@ -40,8 +40,11 @@ class ProxyIpSpider(scrapy.Spider):
                 protocol = ip_proxy.xpath('td[6]/text()').extract_first()
 
                 if ip:
+                    ip = ip[0]
+                    port = port[0]
                     proxy = '%s://%s:%s' % (protocol.lower(), ip, port)
                     self.log('proxy: %s' % proxy)
+                    # todo: 这里request应该不需要遵循反爬规则,频率太低验证不过来
                     yield scrapy.Request(self.url, callback=self.parse_success, errback=self.parse_err,
                                          meta={'proxy': proxy, 'handle_httpstatus_all ': True},
                                          dont_filter=True)
@@ -61,7 +64,8 @@ class ProxyIpSpider(scrapy.Spider):
         proxy = src_request.meta['proxy']
         if response.status == 200:
             self.log('proxy: %s is useful' % proxy)
-            yield proxy
+            yield {
+                'proxy': proxy
+            }
         else:
             self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
-

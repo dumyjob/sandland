@@ -24,12 +24,13 @@ class IpServiceSpider(scrapy.Spider):
     def start_requests(self):
         url = 'https://www.baidu.com/'
 
-        # todo: 这里调整为从redis队列中获取
+        # todo:实现定时任务
         ip_pool = r.smembers(proxy_ip_key)
         for ip_proxy in ip_pool:
-            self.log('proxy: %s' % ip_proxy)
+            proxy = ip_proxy['proxy']
+            self.log('proxy: %s' % proxy)
             yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,
-                                 meta={'proxy': ip_proxy, 'handle_httpstatus_all ': True},
+                                 meta={'proxy': proxy, 'handle_httpstatus_all ': True},
                                  dont_filter=True)
 
     def parse_err(self, failure):
