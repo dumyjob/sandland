@@ -11,9 +11,25 @@ class ProxyIpSpider(scrapy.Spider):
     start_urls = ['http://www.xicidaili.com/nn/']
 
     custom_settings = {
-        'DOWNLOAD_DELAY': 3
+        'DOWNLOAD_DELAY': 3,
+        'ITEM_PIPELINES': {
+            'sandland.pipelines.ProxyIpPipeline': 1
+        },
+        'DOWNLOADER_MIDDLEWARES': {
+            #禁用默认的User-Agent middleware
+            'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+            'sandland.middlewares.RotateUserAgentMiddleware': 543
+
+        },
+        'ROBOTSTXT_OBEY': False,
+        'RETRY_ENABLED': False,
+        'HTTPERROR_ALLOW_ALL': True
     }
 
+    # 代理IP可用性验证url
+    url = 'https://www.baidu.com/'
+
+    # 爬取代理网站上提供的代理IP
     def parse(self, response):
         ip_proxies = response.xpath('//table[@id="ip_list"]/tr')
 
@@ -24,12 +40,28 @@ class ProxyIpSpider(scrapy.Spider):
                 protocol = ip_proxy.xpath('td[6]/text()').extract_first()
 
                 if ip:
-                    yield {
-                        'ip': ip[0],
-                        'port': port[0],
-                        'protocol': protocol
-                    }
+                    proxy = '%s://%s:%s' % (protocol.lower(), ip, port)
+                    self.log('proxy: %s' % proxy)
+                    yield scrapy.Request(self.url, callback=self.parse_success, errback=self.parse_err,
+                                         meta={'proxy': proxy, 'handle_httpstatus_all ': True},
+                                         dont_filter=True)
 
         next_page = response.xpath('//div[@class="pagination"]/a[@class="next_page"]/@href').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
+
+    # 代理IP验证失败,记Log
+    def parse_err(self, failure):
+        proxy = failure.request.meta['proxy']
+        self.log('proxy: %s is invalid' % proxy)
+
+    # 代理IP验证成功
+    def parse_success(self, response):
+        src_request = response.request
+        proxy = src_request.meta['proxy']
+        if response.status == 200:
+            self.log('proxy: %s is useful' % proxy)
+            yield proxy
+        else:
+            self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
+

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+from ..redis_p import *
 
 
 # 验证IP_POOL中的IP代理的有效性
@@ -23,22 +24,19 @@ class IpServiceSpider(scrapy.Spider):
     def start_requests(self):
         url = 'https://www.baidu.com/'
 
-        ip_pool = []
-        with open('E:\git\sandland\proxy_ip.jl') as f:
-            for line in f:
-                ip_proxy = json.loads(line)
-                ip_pool.append(ip_proxy)
-
+        # todo: 这里调整为从redis队列中获取
+        ip_pool = r.smembers(proxy_ip_key)
         for ip_proxy in ip_pool:
-            proxy = '%s://%s:%s' % (ip_proxy['protocol'].lower(), ip_proxy['ip'], ip_proxy['port'])
-            self.log('proxy: %s' % proxy)
+            self.log('proxy: %s' % ip_proxy)
             yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,
-                                 meta={'proxy': proxy, 'handle_httpstatus_all ': True},
+                                 meta={'proxy': ip_proxy, 'handle_httpstatus_all ': True},
                                  dont_filter=True)
 
     def parse_err(self, failure):
         proxy = failure.request.meta['proxy']
-        self.log('proxy: %s is invalid' % proxy)
+        self.log('proxy: %s is invalid, removed from set.' % proxy)
+
+        r.srem(proxy_ip_key, proxy)
 
     def parse(self, response):
         src_request = response.request
@@ -47,4 +45,5 @@ class IpServiceSpider(scrapy.Spider):
             self.log('proxy: %s is useful' % proxy)
         else:
             self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
+            r.srem(proxy_ip_key, proxy)
 
