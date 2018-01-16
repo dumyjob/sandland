@@ -25,14 +25,9 @@ class ProxyIpSpider(scrapy.Spider):
             'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
             'sandland.middlewares.RotateUserAgentMiddleware': 543
 
-        },
-        'ROBOTSTXT_OBEY': False,
-        'RETRY_ENABLED': False,
-        'HTTPERROR_ALLOW_ALL': True
+        }
     }
 
-    # 代理IP可用性验证url
-    url = 'https://www.baidu.com/'
 
     # todo： 需要处理timeoutError
     # 爬取代理网站上提供的代理IP
