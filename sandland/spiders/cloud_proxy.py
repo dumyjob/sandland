@@ -21,4 +21,20 @@ class CloudProxySpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        pass
+
+        proxies = response.xpath('//*[@id="list"]/table/tbody/tr')
+        # response.xpath('//*[@id="list"]/table/tbody/tr/td[4]/text()')
+        if proxies:
+            for proxy in proxies:
+                ip = proxy.xpath('td[1]/text()').extract_first()
+                port = proxy.xpath('td[2]/text()').extract_first()
+                protocol = proxy.xpath('td[4]/text()').extract_first().lower()
+
+                yield {
+                    'proxy': '%s://%s:%s' % (protocol, ip, port)
+                }
+
+        next_page = response.xpath('//').extract_first()
+        if next_page is not None:
+            yield response.follow(next_page, self.parse)
+
