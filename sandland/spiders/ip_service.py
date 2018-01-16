@@ -9,6 +9,7 @@ from ..redis_p import *
 # consumer: 从redis中获取代理ip,验证可用性,加入到可用列表中
 # 能够获得的有效ip比例: ?/25686 = ?
 # todo: + 定时验证ip_pool中的代理的可用性的定时任务
+# todo: + 如何提高验证ip_pool的速度,现在并发速度太慢了
 class IpServiceSpider(scrapy.Spider):
     name = 'ip_service'
     allowed_domains = ['www.baidu.com']
