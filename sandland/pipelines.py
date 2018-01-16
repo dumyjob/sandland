@@ -30,7 +30,7 @@ class ProxyIpPipeline(object):
         # 将数据序列化为json后,在存入到redis中
         s = json.dumps(dict(item))
         # todo: 注意事务和并发
-        r.sadd(proxy_ip_key, s)
+        r.lpush(proxy_ip_queue, s)
         return item
 
 

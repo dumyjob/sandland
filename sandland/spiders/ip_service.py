@@ -28,9 +28,9 @@ class IpServiceSpider(scrapy.Spider):
         url = 'https://www.baidu.com/'
 
         # todo 这里不要一下取出来,数据结构最好采用redis队列
-        ip_pool = r.smembers(proxy_ip_key)
-        for ip_proxy in ip_pool:
-            self.log(str(ip_proxy, encoding='utf-8'))
+        while True:
+            ip_proxy = r.brpop(proxy_ip_queue)
+
             proxy = json.loads(str(ip_proxy, encoding='utf-8'))['proxy']
             self.log('proxy: %s' % proxy)
             yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,
@@ -39,10 +39,7 @@ class IpServiceSpider(scrapy.Spider):
 
     def parse_err(self, failure):
         proxy = failure.request.meta['proxy']
-        self.log('proxy: %s is invalid, removed from set.' % proxy)
-
-        ip_proxy = {'proxy': proxy}
-        r.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
+        self.log('proxy: %s is invalid, removed from list.' % proxy)
 
     def parse(self, response):
         src_request = response.request
@@ -50,17 +47,10 @@ class IpServiceSpider(scrapy.Spider):
         if response.status == 200:
             # storage useful proxy
             self.log('proxy: %s is useful' % proxy)
-            pip = r.pipeline()
-            pip.sadd(ip_pool_key, str(proxy))
-            ip_proxy = {'proxy': proxy}
-            pip.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
-
-            pip.execute()
+            r.sadd(ip_pool_key, str(proxy))
 
         else:
             self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
-            ip_proxy = {'proxy': proxy}
-            r.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
 
 
 # def main():

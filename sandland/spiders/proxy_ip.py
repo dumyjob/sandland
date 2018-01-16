@@ -16,7 +16,7 @@ class ProxyIpSpider(scrapy.Spider):
     start_urls = ['http://www.xicidaili.com/nn/']
 
     custom_settings = {
-        'DOWNLOAD_DELAY': 3,
+        'DOWNLOAD_DELAY': 10,
         'ITEM_PIPELINES': {
             'sandland.pipelines.ProxyIpPipeline': 1
         },
