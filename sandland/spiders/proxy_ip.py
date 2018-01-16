@@ -9,6 +9,7 @@ import scrapy
 # ?: 为什么要使用producer-consumer模式?
 # A: 因为producer一次会拉取大量的代理Ip,而consumer一次只能验证一个代理IP的可用性
 # consumer的性能没有发挥出来
+# todo: 中间数据结构使用List,作为队列结构,实现消费者等待功能
 class ProxyIpSpider(scrapy.Spider):
     name = 'proxy_ip'
     allowed_domains = ['www.xicidaili.com']
