@@ -4,6 +4,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
+import json
 from .redis_p import *
 
 
@@ -24,9 +25,12 @@ class SandlandPipeline(object):
 # 代理IP
 # 采用set还是有序set还是list
 class ProxyIpPipeline(object):
-
     # 这里假定的item都是验证过的有效的代理IP
     def process_item(self, item, spider):
+        # 将数据序列化为json后,在存入到redis中
+        s = json.dumps(dict(item))
         # todo: 注意事务和并发
-        r.sadd(proxy_ip_key, item)
+        r.sadd(proxy_ip_key, s)
         return item
+
+

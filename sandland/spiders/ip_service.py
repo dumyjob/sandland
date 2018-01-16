@@ -28,7 +28,8 @@ class IpServiceSpider(scrapy.Spider):
 
         ip_pool = r.smembers(proxy_ip_key)
         for ip_proxy in ip_pool:
-            proxy = ip_proxy['proxy']
+            self.log(str(ip_proxy, encoding='utf-8'))
+            proxy = json.loads(str(ip_proxy, encoding='utf-8'))['proxy']
             self.log('proxy: %s' % proxy)
             yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,
                                  meta={'proxy': proxy, 'handle_httpstatus_all ': True},
@@ -38,7 +39,8 @@ class IpServiceSpider(scrapy.Spider):
         proxy = failure.request.meta['proxy']
         self.log('proxy: %s is invalid, removed from set.' % proxy)
 
-        r.srem(proxy_ip_key, proxy)
+        ip_proxy = {'proxy': proxy}
+        r.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
 
     def parse(self, response):
         src_request = response.request
@@ -47,12 +49,22 @@ class IpServiceSpider(scrapy.Spider):
             # storage useful proxy
             self.log('proxy: %s is useful' % proxy)
             pip = r.pipeline()
-            pip.sadd(ip_pool_key, proxy)
-            pip.srem(proxy_ip_key, proxy)
+            pip.sadd(ip_pool_key, str(proxy))
+            ip_proxy = {'proxy': proxy}
+            pip.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
 
             pip.execute()
 
         else:
             self.log('proxy: %s is invalid,status: %s' % (proxy, response.status))
-            r.srem(proxy_ip_key, proxy)
+            ip_proxy = {'proxy': proxy}
+            r.srem(proxy_ip_key, json.dumps(dict(ip_proxy)))
 
+
+# def main():
+#     s = '{"proxy": "https://123.185.129.189:8080"}'
+#
+#     json.loads(s)
+#
+# if __name__ == '__main__':
+#     main()

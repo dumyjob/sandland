@@ -33,6 +33,7 @@ class ProxyIpSpider(scrapy.Spider):
     # 代理IP可用性验证url
     url = 'https://www.baidu.com/'
 
+    # todo： 需要处理timeoutError
     # 爬取代理网站上提供的代理IP
     def parse(self, response):
         ip_proxies = response.xpath('//table[@id="ip_list"]/tr')
