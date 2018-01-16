@@ -37,3 +37,5 @@ class QuickProxySpider(scrapy.Spider):
         next_page = response.xpath('//*[@id="listnav"]/ul/li/a[@class="active"]/../following-sibling::li[1]/a/@href').extract_first()
         if next_page is not None:
             yield response.follow(next_page, self.parse)
+
+

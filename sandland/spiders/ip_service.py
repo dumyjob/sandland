@@ -29,8 +29,10 @@ class IpServiceSpider(scrapy.Spider):
 
         # todo 这里不要一下取出来,数据结构最好采用redis队列
         while True:
-            ip_proxy = r.brpop(proxy_ip_queue, 100)
-            if ip_proxy is not None:
+            ip_proxies = r.brpop(proxy_ip_queue, 100)
+            if ip_proxies is not None:
+                ip_proxy = ip_proxies[1]
+                self.log(ip_proxy)
                 proxy = json.loads(str(ip_proxy, encoding='utf-8'))['proxy']
                 self.log('proxy: %s' % proxy)
                 yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,

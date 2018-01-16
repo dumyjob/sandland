@@ -51,3 +51,5 @@ class ProxyIpSpider(scrapy.Spider):
         next_page = response.xpath('//div[@class="pagination"]/a[@class="next_page"]/@href').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
+
+
