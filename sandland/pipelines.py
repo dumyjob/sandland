@@ -34,4 +34,13 @@ class ProxyIpPipeline(object):
         return item
 
 
+class UsNamePipeline(object):
+
+    def process_item(self, item, spider):
+        s = json.dumps(dict(item))
+        r.sadd(us_name_key, s)
+
+        return item
+
+
 

@@ -21,7 +21,16 @@ class UsNameSpider(scrapy.Spider):
     start_urls = ['https://stackoverflow.com/tags/']
 
     custom_settings = {
-        'DOWNLOAD_DELAY': 3
+        'DOWNLOAD_DELAY': 3,
+        'ITEM_PIPELINES': {
+             'sandland.pipelines.UsNamePipeline': 1
+        },
+        'DOWNLOADER_MIDDLEWARES': {
+            #禁用默认的User-Agent middleware
+            'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+            'sandland.middlewares.RotateUserAgentMiddleware': 543,
+            'sandland.middlewares.IpProxyMiddleware': 544
+        }
     }
 
     def parse(self, response):

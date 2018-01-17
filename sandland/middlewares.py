@@ -10,7 +10,10 @@ from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
 import random
 import logging
+from .redis_p import *
 
+
+logger = logging.getLogger(__name__)
 
 class SandlandSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -126,22 +129,14 @@ class RotateUserAgentMiddleware(UserAgentMiddleware):
         request.headers.setdefault(b'User-Agent', random.choice(self.user_agents))
 
 
+
 class IpProxyMiddleware(HttpProxyMiddleware):
 
-    def __init__(self, ip_pools):
-        self.ip_pools = ip_pools
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(crawler.settings.getlist('IP_POOLS'))
-
     def process_request(self, request, spider):
-        proxy = random.choice(self.ip_pools)
-        ip = proxy['ip_proxy']
-        protocol = proxy['protocol']
-        request.meta[b"proxy"] = '%s://%s' % (protocol.lower(), ip)
+        proxy = r.srandmember(ip_pool_key, 1)
+        request.meta[b"proxy"] = proxy
 
-        print(request.meta[b'proxy'])
+        logger.info(request.meta[b'proxy'])
 
 
 # How to deal TCP connection timed out/ Connection was refused by other side

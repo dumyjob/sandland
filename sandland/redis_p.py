@@ -7,6 +7,7 @@ r = redis.Redis(host='markbolo.com', password='shenxfT1000', port='6379')
 proxy_ip_queue = 'proxy_ip_queue'
 proxy_ip_len_key = 'proxy_ip_size'
 ip_pool_key = 'ip_pool'
+us_name_key = 'us_name'
 
 
 # def main():
