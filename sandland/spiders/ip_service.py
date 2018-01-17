@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+import time
 from ..redis_p import *
 
 
@@ -10,6 +11,10 @@ from ..redis_p import *
 # 能够获得的有效ip比例: ?/25686 = ?
 # todo: + 定时验证ip_pool中的代理的可用性的定时任务
 # todo: + 如何提高验证ip_pool的速度,现在并发速度太慢了
+# 添加log信息: 1. 每个request - response/failure的时间
+# 2. 有多少个request并发
+# 3.
+# 如何处理spider中断,已经取出来,但是还没处理完的数据如何保留?
 class IpServiceSpider(scrapy.Spider):
     name = 'ip_service'
     allowed_domains = ['www.baidu.com']
@@ -20,9 +25,12 @@ class IpServiceSpider(scrapy.Spider):
             'sandland.middlewares.RotateUserAgentMiddleware': 543
 
         },
+        # 'EXTENSIONS': {
+        #    'sandland.extensions.LogTimeExtension': 500
+        # },
         'ROBOTSTXT_OBEY': False,
         'RETRY_ENABLED': False,
-        'HTTPERROR_ALLOW_ALL': True
+        'DOWNLOAD_TIMEOUT': 10
     }
 
     def start_requests(self):
@@ -33,16 +41,20 @@ class IpServiceSpider(scrapy.Spider):
             ip_proxies = r.brpop(proxy_ip_queue, 100)
             if ip_proxies is not None:
                 ip_proxy = ip_proxies[1]
-                self.log(ip_proxy)
                 proxy = json.loads(str(ip_proxy, encoding='utf-8'))['proxy']
                 self.log('proxy: %s' % proxy)
                 yield scrapy.Request(url, callback=self.parse, errback=self.parse_err,
-                                     meta={'proxy': proxy, 'handle_httpstatus_all ': True},
+                                     meta={'proxy': proxy,
+                                           'start_time': time.time()
+                                           },
                                      dont_filter=True)
 
     def parse_err(self, failure):
+        # self.log(failure)
         proxy = failure.request.meta['proxy']
-        self.log('proxy: %s is invalid, removed from list.' % proxy)
+        time_elapsed = time.time() - failure.request.meta['start_time']
+
+        self.log('proxy: %s is invalid, removed from list. time_elapsed: %0.2f' % (proxy, time_elapsed))
 
     def parse(self, response):
         src_request = response.request
